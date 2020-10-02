@@ -14,6 +14,7 @@ class Board extends React.Component {
   renderSquare(i) {
     return (
       <Square
+        key={i}
         value={this.props.squares[i]}
         onClick={() => this.props.onClick(i)}
       />
@@ -21,25 +22,19 @@ class Board extends React.Component {
   }
 
   render() {
-    return (
-      <div>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
+    const rows = Array.from(Array(3), (e, row) => {
+      const squares = Array.from(Array(3), (f, col) =>
+        this.renderSquare(row * 3 + col)
+      );
+
+      return (
+        <div key={row} className="board-row">
+          {squares}
         </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
-      </div>
-    );
+      );
+    });
+
+    return <div>{rows}</div>;
   }
 }
 
@@ -51,6 +46,7 @@ class Game extends React.Component {
       history: [{ squares: Array(9).fill(null), row: null, col: null }],
       xIsNext: true,
       stepNumber: 0,
+      moveOrderAscending: true,
     };
   }
 
@@ -83,6 +79,12 @@ class Game extends React.Component {
     });
   }
 
+  toggleMoveOrder() {
+    this.setState({
+      moveOrderAscending: !this.state.moveOrderAscending,
+    });
+  }
+
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
@@ -94,7 +96,7 @@ class Game extends React.Component {
       status = "Next player: " + (this.state.xIsNext ? "X" : "O");
     }
 
-    const moves = history.map((step, move) => {
+    let moves = history.map((step, move) => {
       const desc = move
         ? "Go to move #" + move + " (" + step.row + ", " + step.col + ")"
         : "Go to game start";
@@ -114,6 +116,10 @@ class Game extends React.Component {
       );
     });
 
+    if (!this.state.moveOrderAscending) {
+      moves = moves.reverse();
+    }
+
     return (
       <div className="game">
         <div className="game-board">
@@ -123,7 +129,12 @@ class Game extends React.Component {
           />
         </div>
         <div className="game-info">
-          <div>{status}</div>
+          <div>
+            {status}
+            <button onClick={() => this.toggleMoveOrder()}>
+              Reverse Order
+            </button>
+          </div>
           <ol>{moves}</ol>
         </div>
       </div>
